@@ -72,7 +72,30 @@ export default function FavoritesPage() {
       // Temporarily add a class for styling the captured image
       proverbCardRef.current.classList.add("bg-white", "p-6");
 
-      const dataUrl = await toPng(proverbCardRef.current, { cacheBust: true });
+      // Store original styles to restore them later
+      const originalStyles = {
+        width: proverbCardRef.current.style.width,
+        height: proverbCardRef.current.style.height,
+        maxWidth: proverbCardRef.current.style.maxWidth,
+      };
+
+    // Set fixed dimensions for the image export - 1080x1350 aspect ratio
+    proverbCardRef.current.style.width = "400px";
+    proverbCardRef.current.style.height = "400px";
+    proverbCardRef.current.style.maxWidth = "none";
+
+    // Generate the image with the fixed dimensions
+    const dataUrl = await toPng(proverbCardRef.current, {
+      cacheBust: true,
+      pixelRatio: 1, // Use exact pixel ratio to maintain dimensions
+      width: 400,
+      height: 400,
+    });
+
+      // Restore original styles
+      proverbCardRef.current.style.width = originalStyles.width;
+      proverbCardRef.current.style.height = originalStyles.height;
+      proverbCardRef.current.style.maxWidth = originalStyles.maxWidth;
 
       // Remove the temporary class
       proverbCardRef.current.classList.remove("bg-white", "p-6");
@@ -106,6 +129,10 @@ export default function FavoritesPage() {
       // Remove the temporary class in case of error
       if (proverbCardRef.current) {
         proverbCardRef.current.classList.remove("bg-white", "p-6");
+        // Reset styles in case of error
+        proverbCardRef.current.style.width = "";
+        proverbCardRef.current.style.height = "";
+        proverbCardRef.current.style.maxWidth = "";
       }
       console.error("Failed to generate image:", err);
       toast.error("Failed to generate image.");
