@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
-import { track } from "@vercel/analytics/next";
+import { track } from "@vercel/analytics";
 import {
   Copy,
   Share2,
