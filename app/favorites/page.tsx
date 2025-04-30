@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import { Copy, ArrowLeft, Trash2, Download, Heart } from "lucide-react";
 import Link from "next/link";
-import { track } from "@vercel/analytics/next";
+import { track } from "@vercel/analytics";
 
 interface Proverb {
   id: number;
