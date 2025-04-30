@@ -11,6 +11,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import Link from "next/link";
+import ProverbImageCard from "../components/ProverbImageCard";
 
 interface Proverb {
   id: number;
@@ -25,6 +26,7 @@ export default function Home() {
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
   const [favorites, setFavorites] = useState<Proverb[]>([]);
   const proverbCardRef = useRef<HTMLDivElement>(null);
+  const downloadCardRef = useRef<HTMLDivElement>(null);
 
   // Load favorites from localStorage on initial mount
   useEffect(() => {
@@ -125,45 +127,22 @@ export default function Home() {
   };
 
   const shareAsImage = useCallback(async () => {
-    if (!proverbCardRef.current) {
-      toast.error("Could not capture proverb card.");
+    if (!proverb || !downloadCardRef.current) {
+      toast.error("Could not generate proverb image.");
       return;
     }
 
     try {
-      // Temporarily add classes for styling the captured image
-      proverbCardRef.current.classList.add("bg-white", "p-6");
-
-      // Store original styles to restore them later
-      const originalStyles = {
-        width: proverbCardRef.current.style.width,
-        height: proverbCardRef.current.style.height,
-        maxWidth: proverbCardRef.current.style.maxWidth,
-      };
-
-      // Set fixed dimensions for the image export - 1080x1350 aspect ratio
-      proverbCardRef.current.style.width = "400px";
-      proverbCardRef.current.style.height = "400px";
-      proverbCardRef.current.style.maxWidth = "none";
-
-      // Generate the image with the fixed dimensions
-      const dataUrl = await toPng(proverbCardRef.current, {
+      // Using the dedicated download component with fixed dimensions
+      const dataUrl = await toPng(downloadCardRef.current, {
         cacheBust: true,
-        pixelRatio: 1, // Use exact pixel ratio to maintain dimensions
-        width: 400,
-        height: 400,
+        quality: 1,
+        pixelRatio: 2, // Higher quality
       });
 
-      // Restore original styles
-      proverbCardRef.current.style.width = originalStyles.width;
-      proverbCardRef.current.style.height = originalStyles.height;
-      proverbCardRef.current.style.maxWidth = originalStyles.maxWidth;
-
-      // Remove the temporary class
-      proverbCardRef.current.classList.remove("bg-white", "p-6");
-
+      // Handle download
       const link = document.createElement("a");
-      link.download = `yoruba-proverb-${proverb?.id || "image"}.png`;
+      link.download = `yoruba-proverb-${proverb.id || "image"}.png`;
       link.href = dataUrl;
       link.click();
       toast.success("Proverb image downloaded!");
@@ -175,7 +154,7 @@ export default function Home() {
         try {
           await navigator.share({
             title: "Yoruba Proverb",
-            text: `${proverb?.proverb}`,
+            text: `${proverb.proverb}`,
             files: [file],
           });
           toast.info("Shared successfully!");
@@ -188,14 +167,6 @@ export default function Home() {
         }
       }
     } catch (err) {
-      // Remove the temporary class in case of error
-      if (proverbCardRef.current) {
-        proverbCardRef.current.classList.remove("bg-white", "p-6");
-        // Reset styles in case of error
-        proverbCardRef.current.style.width = "";
-        proverbCardRef.current.style.height = "";
-        proverbCardRef.current.style.maxWidth = "";
-      }
       console.error("Failed to generate image:", err);
       toast.error("Failed to generate image.");
     }
@@ -232,6 +203,13 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      {/* Hidden download card - only used for image generation */}
+      <div className="fixed left-[-9999px]" aria-hidden="true">
+        <div ref={downloadCardRef}>
+          {proverb && <ProverbImageCard proverb={proverb} />}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
         <div className="container mx-auto px-4 py-16 max-w-5xl">
@@ -424,9 +402,9 @@ export default function Home() {
             About Yoruba Proverbs
           </h2>
           <p className="text-amber-800 mb-2">
-            Yoruba proverbs, known as &quot;Òwe&quot; in the Yoruba language, are an
-            essential part of Yoruba culture and communication in Nigeria and
-            across West Africa.
+            Yoruba proverbs, known as &quot;Òwe&quot; in the Yoruba language,
+            are an essential part of Yoruba culture and communication in Nigeria
+            and across West Africa.
           </p>
           <p className="text-amber-700">
             These proverbs reflect the collective wisdom, philosophy, and
