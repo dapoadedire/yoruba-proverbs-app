@@ -73,7 +73,10 @@ export default function Home() {
     window.addEventListener("focus", syncFavoritesFromStorage);
 
     return () => {
-      document.removeEventListener("visibilitychange", syncFavoritesFromStorage);
+      document.removeEventListener(
+        "visibilitychange",
+        syncFavoritesFromStorage
+      );
       window.removeEventListener("focus", syncFavoritesFromStorage);
     };
   }, []);
@@ -421,7 +424,7 @@ export default function Home() {
             About Yoruba Proverbs
           </h2>
           <p className="text-amber-800 mb-2">
-            Yoruba proverbs, known as "Òwe" in the Yoruba language, are an
+            Yoruba proverbs, known as &quot;Òwe&quot; in the Yoruba language, are an
             essential part of Yoruba culture and communication in Nigeria and
             across West Africa.
           </p>

@@ -23,11 +23,15 @@ export default function FavoritesPage() {
       const storedFavorites = localStorage.getItem("favoriteProverbs");
       if (storedFavorites) {
         const parsedFavorites = JSON.parse(storedFavorites);
-        console.log("Favorites page loading from localStorage:", parsedFavorites.length, "items");
-        
+        console.log(
+          "Favorites page loading from localStorage:",
+          parsedFavorites.length,
+          "items"
+        );
+
         // Always set the favorites from localStorage
         setFavorites(parsedFavorites);
-        
+
         // Select first proverb if available and no proverb is currently selected
         if (parsedFavorites.length > 0 && !selectedProverb) {
           setSelectedProverb(parsedFavorites[0]);
@@ -39,8 +43,8 @@ export default function FavoritesPage() {
       console.error("Error loading favorites from localStorage:", error);
       toast.error("Failed to load your favorites");
     }
-  // Only run this effect once on component mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Only run this effect once on component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle selection of proverb when favorites change
