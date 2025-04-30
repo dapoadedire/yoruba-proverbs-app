@@ -21,13 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full font-sans">
-      {" "}
       {/* Added font-sans */}
       <body
         className={`${dmSans.variable} antialiased min-h-full flex flex-col bg-gray-50 text-gray-900`}
       >
         {children}
-        <Toaster richColors position="top-right" />{" "}
+        <Toaster richColors position="top-right" />
         {/* Add Toaster component */}
       </body>
     </html>
