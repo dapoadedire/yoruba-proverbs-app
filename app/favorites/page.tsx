@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import { Copy, ArrowLeft, Trash2, Download, Heart } from "lucide-react";
 import Link from "next/link";
+import { track } from "@vercel/analytics/next";
 
 interface Proverb {
   id: number;
@@ -62,6 +63,7 @@ export default function FavoritesPage() {
     const updatedFavorites = favorites.filter((proverb) => proverb.id !== id);
     setFavorites(updatedFavorites);
     localStorage.setItem("favoriteProverbs", JSON.stringify(updatedFavorites));
+    track("remove_from_favorites", { proverb_id: id, location: "favorites" });
     toast.success("Removed from favorites");
   };
 
@@ -72,6 +74,10 @@ export default function FavoritesPage() {
       .writeText(textToCopy)
       .then(() => {
         toast.success("Proverb copied to clipboard!");
+        track("copy_to_clipboard", {
+          proverb_id: selectedProverb.id,
+          location: "favorites",
+        });
       })
       .catch((err) => {
         console.error("Failed to copy:", err);
@@ -280,7 +286,12 @@ export default function FavoritesPage() {
                           <span>Copy</span>
                         </button>
                         <button
-                          onClick={shareAsImage}
+                          onClick={() => {
+                            track("download_proverb_image", {
+                              location: "favorites",
+                            });
+                            shareAsImage();
+                          }}
                           title="Download as Image"
                           className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
                         >

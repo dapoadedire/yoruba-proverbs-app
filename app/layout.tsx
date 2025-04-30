@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner"; // Import Toaster
+import { Analytics } from "@vercel/analytics/next"
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -85,6 +86,7 @@ export default function RootLayout({
           </svg>
           Share Feedback
         </a>
+        <Analytics />
       </body>
     </html>
   );

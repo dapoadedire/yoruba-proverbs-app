@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
+import { track } from "@vercel/analytics/next";
 import {
   Copy,
   Share2,
@@ -90,6 +91,7 @@ export default function Home() {
     }
 
     try {
+      track("fetch_new_proverb", { initial_load: initialLoad });
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/proverb`);
       if (!response.ok) {
@@ -119,6 +121,10 @@ export default function Home() {
       .writeText(textToCopy)
       .then(() => {
         toast.success("Proverb copied to clipboard!");
+        track("copy_to_clipboard", {
+          proverb_id: proverb.id,
+          location: "home",
+        });
       })
       .catch((err) => {
         console.error("Failed to copy:", err);
@@ -189,6 +195,10 @@ export default function Home() {
         JSON.stringify(updatedFavorites)
       );
       toast.info("Removed from favorites.");
+      track("remove_from_favorites", {
+        proverb_id: proverb.id,
+        location: "home",
+      });
     } else {
       // Add to favorites
       const updatedFavorites = [...favorites, proverb];
@@ -198,6 +208,7 @@ export default function Home() {
         JSON.stringify(updatedFavorites)
       );
       toast.success("Added to favorites!");
+      track("add_to_favorites", { proverb_id: proverb.id, location: "home" });
     }
   };
 
@@ -292,7 +303,10 @@ export default function Home() {
                         <span className="hidden sm:inline">Copy</span>
                       </button>
                       <button
-                        onClick={shareAsImage}
+                        onClick={() => {
+                          track("download_proverb_image", { location: "home" });
+                          shareAsImage();
+                        }}
                         title="Download as Image"
                         className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
                       >
@@ -327,6 +341,10 @@ export default function Home() {
                         <button
                           onClick={() => {
                             if (navigator.share && proverb) {
+                              track("share_proverb_webshare", {
+                                proverb_id: proverb.id,
+                                location: "home",
+                              });
                               navigator
                                 .share({
                                   title: "Yoruba Proverb",

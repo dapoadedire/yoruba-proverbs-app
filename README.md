@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yoruba Proverbs App
 
-## Getting Started
+A simple web application for discovering, sharing, and collecting Yoruba proverbs - ancient wisdom for modern times.
 
-First, run the development server:
+![Yoruba Proverbs App](/public/og-image.png)
+
+## 🌟 Features
+
+- **Discover Proverbs**: Explore traditional Yoruba proverbs with translations and explanations
+- **Save Favorites**: Build your own collection of meaningful proverbs
+- **Share Wisdom**: Download proverbs as images or share them directly
+- **Responsive Design**: Enjoy a seamless experience on any device
+
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+# Create .env.local and add:
+# NEXT_PUBLIC_API_URL=your-api-url
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to see the app in action.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💻 Technologies
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend**: Next.js, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Deployment**: Vercel
 
-## Learn More
+## 📱 Usage
 
-To learn more about Next.js, take a look at the following resources:
+1. Click "Discover New Proverb" to generate random proverbs
+2. Save your favorites with the heart icon
+3. Download proverbs as images to share on social media
+4. Browse your collection in the "Favorites" section
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🌐 Live Demo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Visit [Yoruba Proverbs App](https://yorubaproverbs.vercel.app/) to see the live application.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built with ❤️ to preserve and share Yoruba cultural heritage.
