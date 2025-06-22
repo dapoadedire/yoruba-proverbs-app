@@ -68,12 +68,14 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
-        <div className="container mx-auto px-4 py-16 max-w-5xl">
+        <div className="container mx-auto px-4 pt-10 max-w-5xl">
           <header className="text-center mb-6">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 text-amber-900 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-amber-900 leading-tight">
               Yoruba Proverbs
             </h1>
-            <p className="text-xl text-amber-800 max-w-2xl mx-auto">
+            <p className="text-xl text-amber-800 max-w-2xl mx-auto
+            text-balance
+            ">
               Discover ancient wisdom in modern times — a daily dose of cultural
               insight and knowledge
             </p>
@@ -106,10 +108,10 @@ export default function Home() {
               style={{ minHeight: "300px", transformStyle: "preserve-3d" }}
             >
               {/* Card Top Decorative Element */}
-              <div className="h-3 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+              <div className="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
 
               {/* Card Content */}
-              <div className="p-8 md:p-10">
+              <div className="p-5 md:p-10">
                 {loading ? (
                   <div className="flex flex-col justify-center items-center h-48 space-y-4">
                     <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
