@@ -281,7 +281,9 @@ export default function Home() {
         </div>
 
          {/* Subscription Section */}
-        <div className="mt-12 mb-12 max-w-md mx-auto">
+        <div
+        id="subscription-form"
+        className="mt-12 mb-12 max-w-md mx-auto">
           <SubscriptionForm />
         </div>
 
