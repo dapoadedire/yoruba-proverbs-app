@@ -12,6 +12,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import ProverbImageCard from "../components/ProverbImageCard";
 
 interface Proverb {
@@ -22,12 +23,58 @@ interface Proverb {
 }
 
 export default function Home() {
-  const [proverb, setProverb] = useState<Proverb | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
   const [favorites, setFavorites] = useState<Proverb[]>([]);
   const proverbCardRef = useRef<HTMLDivElement>(null);
   const downloadCardRef = useRef<HTMLDivElement>(null);
+
+  // Create a function to fetch proverb that will be used by React Query
+  const fetchProverbData = async (): Promise<Proverb> => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${apiUrl}/proverb`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  };
+
+  // Use React Query to fetch proverb data
+  const {
+    data: proverb,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["proverb"],
+    queryFn: fetchProverbData,
+    staleTime: Infinity, // Don't automatically refetch since we want manual control
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    retry: 2, // Retry failed requests twice
+  });
+
+  // Handle initial load state
+  useEffect(() => {
+    if (!loading && initialLoad) {
+      setInitialLoad(false);
+    }
+  }, [loading, initialLoad]);
+
+  // Track fetch events
+  useEffect(() => {
+    if (!loading && proverb) {
+      track("fetch_new_proverb", { initial_load: initialLoad });
+    }
+  }, [loading, proverb, initialLoad]);
+
+  // Function to fetch a new proverb
+  const fetchNewProverb = async () => {
+    try {
+      await refetch();
+    } catch (error) {
+      console.error("Error fetching proverb:", error);
+      toast.error("Failed to fetch proverb.");
+    }
+  };
 
   // Load favorites from localStorage on initial mount
   useEffect(() => {
@@ -83,36 +130,6 @@ export default function Home() {
       window.removeEventListener("focus", syncFavoritesFromStorage);
     };
   }, []);
-
-  const fetchProverb = useCallback(async () => {
-    // Keep existing loading logic
-    if (initialLoad) {
-      setLoading(true);
-    }
-
-    try {
-      track("fetch_new_proverb", { initial_load: initialLoad });
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/proverb`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: Proverb = await response.json();
-      setProverb(data);
-    } catch (error) {
-      console.error("Error fetching proverb:", error);
-      toast.error("Failed to fetch proverb.");
-    } finally {
-      setLoading(false);
-      if (initialLoad) {
-        setInitialLoad(false);
-      }
-    }
-  }, [initialLoad]);
-
-  useEffect(() => {
-    fetchProverb();
-  }, [fetchProverb]);
 
   const copyToClipboard = () => {
     if (!proverb) return;
@@ -213,7 +230,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <main className="min-h-screen font-sans bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Hidden download card - only used for image generation */}
       <div className="fixed left-[-9999px]" aria-hidden="true">
         <div ref={downloadCardRef}>
@@ -256,7 +273,7 @@ export default function Home() {
             <div
               ref={proverbCardRef}
               className={`relative bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 transform ${
-                initialLoad && loading ? "opacity-50" : "opacity-100"
+                loading ? "opacity-50" : "opacity-100"
               }`}
               style={{ minHeight: "300px", transformStyle: "preserve-3d" }}
             >
@@ -265,7 +282,7 @@ export default function Home() {
 
               {/* Card Content */}
               <div className="p-8 md:p-10">
-                {initialLoad && loading ? (
+                {loading ? (
                   <div className="flex flex-col justify-center items-center h-48 space-y-4">
                     <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-center text-gray-500 font-medium">
@@ -278,13 +295,13 @@ export default function Home() {
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900 leading-snug">
                         {proverb.proverb}
                       </h2>
-                      <p className="text-lg text-gray-700 mb-4 border-l-4 border-amber-300 pl-4">
+                      <p className="text-lg text-gray-700 mb-4 border-l-4 border-amber-300 pl-3">
                         <span className="font-medium text-amber-700 block mb-1">
                           Translation:
                         </span>
                         {proverb.translation}
                       </p>
-                      <p className="text-gray-600 border-l-4 border-gray-200 pl-4">
+                      <p className="text-gray-600 border-l-4 border-gray-200 pl-3">
                         <span className="font-medium text-gray-700 block mb-1">
                           Wisdom:
                         </span>
@@ -297,7 +314,7 @@ export default function Home() {
                       <button
                         onClick={copyToClipboard}
                         title="Copy to Clipboard"
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                        className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
                       >
                         <Copy size={16} />
                         <span className="hidden sm:inline">Copy</span>
@@ -308,7 +325,7 @@ export default function Home() {
                           shareAsImage();
                         }}
                         title="Download as Image"
-                        className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+                        className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
                       >
                         <Download size={16} />
                         <span className="hidden sm:inline">Download</span>
@@ -320,7 +337,7 @@ export default function Home() {
                             ? "Remove from Favorites"
                             : "Add to Favorites"
                         }
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
+                        className={` cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
                           isFavorite(proverb?.id)
                             ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-400"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400"
@@ -369,10 +386,17 @@ export default function Home() {
                       )}
                     </div>
                   </>
-                ) : (
+                ) : error ? (
                   <div className="flex justify-center items-center h-48">
                     <p className="text-center text-red-500 font-medium">
-                      Could not load proverb.
+                      Could not load proverb. Please try again.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center h-48">
+                    <p className="text-center text-gray-500 font-medium">
+                      No proverb found. Click &quot;Discover New Proverb&quot;
+                      below.
                     </p>
                   </div>
                 )}
@@ -390,17 +414,14 @@ export default function Home() {
           {/* Primary CTA - Discover New Proverb */}
           <div className="flex flex-col items-center space-y-6">
             <button
-              onClick={fetchProverb}
-              disabled={loading && !initialLoad}
-              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-lg rounded-full hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              onClick={fetchNewProverb}
+              disabled={loading}
+              className="
+              cursor-pointer
+              flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-lg rounded-full hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
             >
-              <RefreshCw
-                size={20}
-                className={loading && !initialLoad ? "animate-spin" : ""}
-              />
-              {loading && !initialLoad
-                ? "Finding wisdom..."
-                : "Discover New Proverb"}
+              <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+              {loading ? "Finding wisdom..." : "Discover New Proverb"}
             </button>
 
             <div className="text-center">

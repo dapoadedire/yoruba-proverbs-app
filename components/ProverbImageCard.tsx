@@ -16,65 +16,57 @@ interface ProverbImageProps {
 const ProverbImageCard: React.FC<ProverbImageProps> = ({ proverb }) => {
   return (
     <div
-      className="bg-white p-6 shadow-lg"
+      className="bg-white p-6 shadow-xl font-sans"
       style={{
         width: "350px",
-        
         position: "relative",
         overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
-      {/* Decorative top bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-amber-500 to-orange-500"
-        style={{ marginTop: "0" }}
-      />
+      {/* Top gradient bar */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 to-orange-500" />
 
-      <div className="flex flex-col justify-between h-full pt-4">
-        {/* Content area */}
+      <div className="flex flex-col justify-between h-full pt-4 space-y-6">
+        {/* Branding */}
+        <div className="text-sm font-semibold text-amber-600 tracking-wide">
+          Yoruba Proverbs
+        </div>
+
+        {/* Main Proverb */}
+        <h2 className="text-lg font-serif font-semibold text-gray-900 leading-snug">
+          {proverb.proverb}
+        </h2>
+
+        {/* Translation */}
         <div>
-          <div className="mb-6">
-            {/* App branding */}
-            <p className="text-sm font-medium text-amber-600 mb-4">
-              Yoruba Proverbs
-            </p>
+          <p className="text-xs font-medium text-amber-700 uppercase mb-1 tracking-wide">
+            Translation
+          </p>
+          <p className="text-base text-gray-800 border-l-4 border-amber-400 pl-1 leading-relaxed">
+            {proverb.translation}
+          </p>
+        </div>
 
-            {/* Proverb */}
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 leading-snug">
-              {proverb.proverb}
-            </h2>
-
-            {/* Translation */}
-            <div className="mb-4">
-              <span className="text-sm font-medium text-amber-700 block mb-1">
-                Translation:
-              </span>
-              <p className="text-base text-gray-700 border-l-4 border-amber-300 pl-4">
-                {proverb.translation}
-              </p>
-            </div>
-
-            {/* Wisdom */}
-            <div>
-              <span className="text-sm font-medium text-gray-700 block mb-1">
-                Wisdom:
-              </span>
-              <p className="text-sm text-gray-600 border-l-4 border-gray-200 pl-4">
-                {proverb.wisdom}
-              </p>
-            </div>
-          </div>
+        {/* Wisdom */}
+        <div>
+          <p className="text-xs font-medium text-gray-600 uppercase mb-1 tracking-wide">
+            Wisdom
+          </p>
+          <p className="text-sm text-gray-600 border-l-4 border-gray-200 pl-1 italic">
+            {proverb.wisdom}
+          </p>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-gray-400">Proverb #{proverb.id}</div>
-          <div className="text-xs text-gray-400">yorubaproverbs.vercel.app</div>
+        <div className="flex justify-between text-xs text-gray-400 pt-4 border-t border-gray-100">
+          <span>Proverb #{proverb.id}</span>
+          <span>yorubaproverbs.vercel.app</span>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default ProverbImageCard;

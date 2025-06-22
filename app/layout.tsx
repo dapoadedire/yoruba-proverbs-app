@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { Inter, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner"; // Import Toaster
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import Providers from "./providers";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+});
+
+const ibmPlexSerif = IBM_Plex_Serif({
+  variable: "--font-ibm-plex-serif",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
@@ -53,15 +60,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full font-sans">
+    <html lang="en">
       <body
-        className={`${dmSans.variable} antialiased min-h-full flex flex-col bg-gray-50 text-gray-900`}
+        className={`${inter.variable} ${ibmPlexSerif.variable} 
+          font-sans
+          antialiased min-h-full flex flex-col bg-gray-50 text-gray-900`}
       >
-        {children}
+        <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />
 
         {/* Improved Floating Feedback Button */}
-        <a
+        {/* <a
           href="https://forms.gle/13SAa25Da5u4gRUM7"
           target="_blank"
           rel="noopener noreferrer"
@@ -85,7 +94,7 @@ export default function RootLayout({
             <line x1="12" x2="12" y1="7" y2="13" />
           </svg>
           Share Feedback
-        </a>
+        </a> */}
         <Analytics />
       </body>
     </html>
