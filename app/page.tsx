@@ -15,6 +15,7 @@ import ProverbImageCard from "../components/ProverbImageCard";
 import { useProverbManager } from "../hooks/useProverbManager";
 import { copyToClipboard } from "../utils/clipboard";
 import { shareAsImage } from "../utils/sharing";
+import SubscriptionForm from "../components/SubscriptionForm";
 
 export default function Home() {
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
@@ -279,6 +280,11 @@ export default function Home() {
           </div>
         </div>
 
+         {/* Subscription Section */}
+        <div className="mt-12 mb-12 max-w-md mx-auto">
+          <SubscriptionForm />
+        </div>
+
         {/* Educational Section */}
         <div className="mt-20 mb-8 max-w-2xl mx-auto bg-amber-50 rounded-xl p-6 border border-amber-100">
           <h2 className="font-bold text-xl text-amber-900 mb-3">
@@ -295,6 +301,8 @@ export default function Home() {
             generations.
           </p>
         </div>
+
+       
 
         <footer className="text-center text-gray-500 text-sm mt-10">
           <p>
