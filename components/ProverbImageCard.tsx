@@ -43,7 +43,7 @@ const ProverbImageCard: React.FC<ProverbImageProps> = ({ proverb }) => {
           <p className="text-xs font-medium text-amber-700 uppercase mb-1 tracking-wide">
             Translation
           </p>
-          <p className="text-base text-gray-800 border-l-4 border-amber-400 pl-1 leading-relaxed">
+          <p className="text-base text-gray-800 border-l-2 border-amber-400 pl-1 leading-relaxed">
             {proverb.translation}
           </p>
         </div>
@@ -53,7 +53,7 @@ const ProverbImageCard: React.FC<ProverbImageProps> = ({ proverb }) => {
           <p className="text-xs font-medium text-gray-600 uppercase mb-1 tracking-wide">
             Wisdom
           </p>
-          <p className="text-sm text-gray-600 border-l-4 border-gray-200 pl-1 italic">
+          <p className="text-sm text-gray-600 border-l-2 border-gray-200 pl-1 italic">
             {proverb.wisdom}
           </p>
         </div>
