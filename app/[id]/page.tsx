@@ -1,43 +1,34 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+
+import { useRef } from "react";
 import { toast } from "sonner";
 import {
   Copy,
   Share2,
   Heart,
   Download,
-  RefreshCw,
-  BookOpen,
   Twitter,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
-import ProverbImageCard from "../components/ProverbImageCard";
-import { useProverbManager } from "../hooks/useProverbManager";
-import { copyToClipboard } from "../utils/clipboard";
-import { shareAsImage } from "../utils/sharing";
+import { useParams, useRouter } from "next/navigation";
+import ProverbImageCard from "../../components/ProverbImageCard";
+import { useSingleProverb } from "../../hooks/useSingleProverb";
+import { useProverbFavorites } from "../../hooks/useProverbFavorites";
+import { copyToClipboard } from "../../utils/clipboard";
+import { shareAsImage } from "../../utils/sharing";
 
-export default function Home() {
-  const [initialLoad, setInitialLoad] = useState<boolean>(true);
+export default function ProverbDetail() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+
   const proverbCardRef = useRef<HTMLDivElement>(null);
   const downloadCardRef = useRef<HTMLDivElement>(null);
 
-  // Use our custom hook for proverb management
-  const {
-    proverb,
-    isLoading: loading,
-    error,
-    fetchNewProverb,
-    favorites,
-    isFavorite,
-    toggleFavorite,
-  } = useProverbManager();
-
-  // Effect for handling initial load state
-  useEffect(() => {
-    if (!loading && initialLoad) {
-      setInitialLoad(false);
-    }
-  }, [loading, initialLoad]);
+  // Use our custom hooks
+  const { isFavorite, toggleFavoriteById } = useProverbFavorites();
+  const { proverb, loading, error } = useSingleProverb(id);
 
   // Helper function to handle copy to clipboard
   const handleCopyToClipboard = () => {
@@ -72,25 +63,22 @@ export default function Home() {
         <div className="container mx-auto px-4 pt-10 max-w-5xl">
           <header className="text-center mb-6">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 text-amber-900 leading-tight">
-              Yoruba Proverbs
+              Yoruba Proverb
             </h1>
-            <p
-              className="text-xl text-amber-800 max-w-2xl mx-auto
-            text-balance
-            "
-            >
-              Discover ancient wisdom in modern times — a daily dose of cultural
-              insight and knowledge
+            <p className="text-xl text-amber-800 max-w-2xl mx-auto text-balance">
+              Wisdom passed through generations
             </p>
 
-            {/* Favorites Quick Access */}
-            <Link
-              href="/favorites"
-              className="mt-6 inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 font-medium transition-colors"
-            >
-              <BookOpen size={18} />
-              Your Collection ({favorites.length})
-            </Link>
+            {/* Back navigation */}
+            <div className="flex justify-center mt-6">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 font-medium transition-colors"
+              >
+                <ArrowLeft size={18} />
+                Back to All Proverbs
+              </Link>
+            </div>
           </header>
         </div>
       </div>
@@ -147,7 +135,7 @@ export default function Home() {
                       <button
                         onClick={handleCopyToClipboard}
                         title="Copy to Clipboard"
-                        className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+                        className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
                       >
                         <Copy size={16} />
                         <span className="hidden sm:inline">Copy</span>
@@ -155,19 +143,19 @@ export default function Home() {
                       <button
                         onClick={handleShareAsImage}
                         title="Download as Image"
-                        className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+                        className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
                       >
                         <Download size={16} />
                         <span className="hidden sm:inline">Download</span>
                       </button>
                       <button
-                        onClick={toggleFavorite}
+                        onClick={() => toggleFavoriteById(proverb)}
                         title={
                           isFavorite(proverb?.id)
                             ? "Remove from Favorites"
                             : "Add to Favorites"
                         }
-                        className={` cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
+                        className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
                           isFavorite(proverb?.id)
                             ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-400"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400"
@@ -184,7 +172,7 @@ export default function Home() {
                         </span>
                       </button>
                       {/* Web Share API */}
-                      {navigator.share && (
+                      {typeof navigator !== "undefined" && navigator.share && (
                         <button
                           onClick={() => {
                             if (navigator.share && proverb) {
@@ -216,9 +204,7 @@ export default function Home() {
                         <a
                           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                             `Check out this Yoruba proverb: "${proverb.proverb}" from Yoruba Proverbs App`
-                          )}&url=${encodeURIComponent(
-                            `${window.location.origin}/${proverb.id}`
-                          )}`}
+                          )}&url=${encodeURIComponent(window.location.href)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Share on Twitter"
@@ -231,16 +217,21 @@ export default function Home() {
                     </div>
                   </>
                 ) : error ? (
-                  <div className="flex justify-center items-center h-48">
+                  <div className="flex flex-col justify-center items-center h-48 space-y-4">
                     <p className="text-center text-red-500 font-medium">
-                      Could not load proverb. Please try again.
+                      {error}
                     </p>
+                    <button
+                      onClick={() => router.push("/")}
+                      className="px-4 py-2 bg-amber-500 text-white rounded-full hover:bg-amber-600 transition"
+                    >
+                      Return to Home
+                    </button>
                   </div>
                 ) : (
                   <div className="flex justify-center items-center h-48">
                     <p className="text-center text-gray-500 font-medium">
-                      No proverb found. Click &quot;Discover New Proverb&quot;
-                      below.
+                      No proverb found.
                     </p>
                   </div>
                 )}
@@ -252,29 +243,6 @@ export default function Home() {
                   Proverb #{proverb.id}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Primary CTA - Discover New Proverb */}
-          <div className="flex flex-col items-center space-y-6">
-            <button
-              onClick={fetchNewProverb}
-              disabled={loading}
-              className="
-              cursor-pointer
-              flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-lg rounded-full hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
-            >
-              <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
-              {loading ? "Finding wisdom..." : "Discover New Proverb"}
-            </button>
-
-            <div className="text-center">
-              <Link
-                href="/favorites"
-                className="text-amber-700 hover:text-amber-800 font-medium underline-offset-4 hover:underline"
-              >
-                Browse your favorite proverbs
-              </Link>
             </div>
           </div>
         </div>
