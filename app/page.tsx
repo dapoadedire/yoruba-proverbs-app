@@ -1,8 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { toPng } from "html-to-image";
-import { track } from "@vercel/analytics";
 import {
   Copy,
   Share2,
@@ -12,221 +10,51 @@ import {
   BookOpen,
 } from "lucide-react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import ProverbImageCard from "../components/ProverbImageCard";
-
-interface Proverb {
-  id: number;
-  proverb: string;
-  translation: string;
-  wisdom: string; // Changed from 'explanation' to 'wisdom' to match the API response
-}
+import { useProverbManager } from "../hooks/useProverbManager";
+import { copyToClipboard } from "../utils/clipboard";
+import { shareAsImage } from "../utils/sharing";
 
 export default function Home() {
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
-  const [favorites, setFavorites] = useState<Proverb[]>([]);
   const proverbCardRef = useRef<HTMLDivElement>(null);
   const downloadCardRef = useRef<HTMLDivElement>(null);
 
-  // Create a function to fetch proverb that will be used by React Query
-  const fetchProverbData = async (): Promise<Proverb> => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${apiUrl}/proverb`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  };
-
-  // Use React Query to fetch proverb data
+  // Use our custom hook for proverb management
   const {
-    data: proverb,
+    proverb,
     isLoading: loading,
     error,
-    refetch,
-  } = useQuery({
-    queryKey: ["proverb"],
-    queryFn: fetchProverbData,
-    staleTime: Infinity, // Don't automatically refetch since we want manual control
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    retry: 2, // Retry failed requests twice
-  });
+    fetchNewProverb,
+    favorites,
+    isFavorite,
+    toggleFavorite,
+  } = useProverbManager();
 
-  // Handle initial load state
+  // Effect for handling initial load state
   useEffect(() => {
     if (!loading && initialLoad) {
       setInitialLoad(false);
     }
   }, [loading, initialLoad]);
 
-  // Track fetch events
-  useEffect(() => {
-    if (!loading && proverb) {
-      track("fetch_new_proverb", { initial_load: initialLoad });
-    }
-  }, [loading, proverb, initialLoad]);
-
-  // Function to fetch a new proverb
-  const fetchNewProverb = async () => {
-    try {
-      await refetch();
-    } catch (error) {
-      console.error("Error fetching proverb:", error);
-      toast.error("Failed to fetch proverb.");
-    }
-  };
-
-  // Load favorites from localStorage on initial mount
-  useEffect(() => {
-    try {
-      const storedFavorites = localStorage.getItem("favoriteProverbs");
-      if (storedFavorites) {
-        // Always use fresh data from localStorage - needed when returning from favorites page
-        const parsedFavorites = JSON.parse(storedFavorites);
-        console.log("Loading favorites from localStorage:", parsedFavorites);
-        setFavorites(parsedFavorites);
-      }
-    } catch (error) {
-      console.error("Error loading favorites from localStorage:", error);
-    }
-  }, []); // Only runs once on component mount
-
-  // Update localStorage when favorites change
-  useEffect(() => {
-    localStorage.setItem("favoriteProverbs", JSON.stringify(favorites));
-  }, [favorites]);
-
-  // This effect refreshes favorites when the component gains focus
-  // This is essential to sync state when returning from other pages
-  useEffect(() => {
-    const syncFavoritesFromStorage = () => {
-      try {
-        const storedFavorites = localStorage.getItem("favoriteProverbs");
-        if (storedFavorites) {
-          const parsedFavorites = JSON.parse(storedFavorites);
-          console.log("Syncing favorites on focus:", parsedFavorites.length);
-          setFavorites(parsedFavorites);
-        }
-      } catch (error) {
-        console.error("Error syncing favorites from localStorage:", error);
-      }
-    };
-
-    // Sync when the page becomes visible again
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        syncFavoritesFromStorage();
-      }
-    });
-
-    // Sync on window focus
-    window.addEventListener("focus", syncFavoritesFromStorage);
-
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        syncFavoritesFromStorage
-      );
-      window.removeEventListener("focus", syncFavoritesFromStorage);
-    };
-  }, []);
-
-  const copyToClipboard = () => {
+  // Helper function to handle copy to clipboard
+  const handleCopyToClipboard = () => {
     if (!proverb) return;
     const textToCopy = `Proverb: ${proverb.proverb}\nTranslation: ${proverb.translation}\nWisdom: ${proverb.wisdom}`;
-    navigator.clipboard
-      .writeText(textToCopy)
-      .then(() => {
-        toast.success("Proverb copied to clipboard!");
-        track("copy_to_clipboard", {
-          proverb_id: proverb.id,
-          location: "home",
-        });
-      })
-      .catch((err) => {
-        console.error("Failed to copy:", err);
-        toast.error("Failed to copy proverb.");
-      });
+    copyToClipboard(textToCopy, "Proverb copied to clipboard!");
   };
 
-  const shareAsImage = useCallback(async () => {
-    if (!proverb || !downloadCardRef.current) {
-      toast.error("Could not generate proverb image.");
-      return;
-    }
+  // Helper function to handle sharing as image
+  const handleShareAsImage = () => {
+    if (!proverb || !downloadCardRef.current) return;
 
-    try {
-      // Using the dedicated download component with fixed dimensions
-      const dataUrl = await toPng(downloadCardRef.current, {
-        cacheBust: true,
-        quality: 1,
-        pixelRatio: 2, // Higher quality
-      });
-
-      // Handle download
-      const link = document.createElement("a");
-      link.download = `yoruba-proverb-${proverb.id || "image"}.png`;
-      link.href = dataUrl;
-      link.click();
-      toast.success("Proverb image downloaded!");
-
-      // Optional: Direct share using Web Share API (if supported)
-      if (navigator.share) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], link.download, { type: blob.type });
-        try {
-          await navigator.share({
-            title: "Yoruba Proverb",
-            text: `${proverb.proverb}`,
-            files: [file],
-          });
-          toast.info("Shared successfully!");
-        } catch (error) {
-          // Handle share cancellation or error, but download already happened
-          console.log(
-            "Sharing cancelled or failed, but image downloaded.",
-            error
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Failed to generate image:", err);
-      toast.error("Failed to generate image.");
-    }
-  }, [proverb]);
-
-  const isFavorite = (id: number | undefined): boolean => {
-    if (id === undefined) return false;
-    return favorites.some((fav) => fav.id === id);
-  };
-
-  const toggleFavorite = () => {
-    if (!proverb) return;
-
-    if (isFavorite(proverb.id)) {
-      // Remove from favorites
-      const updatedFavorites = favorites.filter((fav) => fav.id !== proverb.id);
-      setFavorites(updatedFavorites);
-      localStorage.setItem(
-        "favoriteProverbs",
-        JSON.stringify(updatedFavorites)
-      );
-      toast.info("Removed from favorites.");
-      track("remove_from_favorites", {
-        proverb_id: proverb.id,
-        location: "home",
-      });
-    } else {
-      // Add to favorites
-      const updatedFavorites = [...favorites, proverb];
-      setFavorites(updatedFavorites);
-      localStorage.setItem(
-        "favoriteProverbs",
-        JSON.stringify(updatedFavorites)
-      );
-      toast.success("Added to favorites!");
-      track("add_to_favorites", { proverb_id: proverb.id, location: "home" });
-    }
+    shareAsImage({
+      element: downloadCardRef.current,
+      fileName: `yoruba-proverb-${proverb.id || "image"}.png`,
+      title: "Yoruba Proverb",
+      text: proverb.proverb,
+    });
   };
 
   return (
@@ -312,7 +140,7 @@ export default function Home() {
                     {/* Action Buttons - Moved inside the card */}
                     <div className="flex flex-wrap justify-center gap-3 border-t border-gray-100 pt-6">
                       <button
-                        onClick={copyToClipboard}
+                        onClick={handleCopyToClipboard}
                         title="Copy to Clipboard"
                         className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
                       >
@@ -320,10 +148,7 @@ export default function Home() {
                         <span className="hidden sm:inline">Copy</span>
                       </button>
                       <button
-                        onClick={() => {
-                          track("download_proverb_image", { location: "home" });
-                          shareAsImage();
-                        }}
+                        onClick={handleShareAsImage}
                         title="Download as Image"
                         className=" cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
                       >
@@ -358,10 +183,6 @@ export default function Home() {
                         <button
                           onClick={() => {
                             if (navigator.share && proverb) {
-                              track("share_proverb_webshare", {
-                                proverb_id: proverb.id,
-                                location: "home",
-                              });
                               navigator
                                 .share({
                                   title: "Yoruba Proverb",
