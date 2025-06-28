@@ -29,8 +29,9 @@ export const useSubscription = () => {
     SubscriptionData
   >({
     mutationFn: async (data: SubscriptionData) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(
-        "https://yoruba-proverb-api-v2.onrender.com/subscribe",
+        `${apiUrl}/subscribe`,
         {
           method: "POST",
           headers: {

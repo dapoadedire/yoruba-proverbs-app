@@ -19,8 +19,9 @@ export function useSingleProverb(id: string | null) {
     const fetchProverbById = async () => {
       setLoading(true);
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(
-          `https://yoruba-proverb-api-v2.onrender.com/proverb/${id}`
+          `${apiUrl}/proverb/${id}`
         );
 
         if (!response.ok) {
